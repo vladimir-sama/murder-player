@@ -1,0 +1,36 @@
+{
+  "$schema": "https://schema.tauri.app/config/2.0.0",
+  "productName": "murder-player",
+  "version": "0.1.0",
+  "identifier": "com.murder-player.app",
+  "build": {
+    "frontendDist": "../src"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "Murder Player",
+        "width": 800,
+        "height": 600
+        
+      }
+    ],
+    "security": {
+      "csp": "default-src: 'self'; media-src: *;"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "linux": {
+      "appimage": {
+        "bundleMediaFramework": true,
+        "files": {}
+      }
+    },
+    "targets": "all",
+    "icon": [
+      "icons/icon.png"
+    ]
+  }
+}

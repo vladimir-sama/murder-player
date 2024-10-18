@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset='UTF-8' />
+  <link rel='stylesheet' href='styles.css' />
+  <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+  <title>Murder Player</title>
+</head>
+
+<body>
+  <div class="container">
+    <div class='audio-player' id='player'>    
+      <audio id='audio' autoplay hidden loop></audio>
+      <div class='controls'>
+        <h1>Murder Player</h1>
+        <p>
+          <span id='track_name'>
+            ###
+          </span>
+        </p>
+          <p>
+            <span id='progress_pos'>00:00:00</span>
+            <input id='progress' type='range' value='0' max='0'>
+            <span id='progress_max'>00:00:00</span>
+          </p>
+          <p>
+            <span id="volume_label">100</span>
+            <input type='range' id='volume' min='0' max='1' step='0.1' value='1'>
+            <button class='control_button' id='play_pause_button'>Pause</button>
+            <input type='search' id='search' placeholder='(Search In Playlist)'>
+            <a href="manage.html">
+              <button class='control_button'>Manage</button>
+            </a>
+            <select onchange="set_playlist()" id="playlist_option"></select>
+          </p>
+      </div>
+    </div>
+    <div class='playlist_items' id='playlist'>
+
+    </div>
+  </div>
+  <script>
+
+    const { invoke } = window.__TAURI__.core;
+    const text_input = document.getElementById('search');
+    const playlist = document.getElementById('playlist');
+
+    text_input.addEventListener('input', function() {
+        const elements = playlist.querySelectorAll('.element_parent');
+        const regex = new RegExp(text_input.value, 'i');
+        elements.forEach(element => {
+            if (element.textContent.match(regex)) {
+                element.style.display = 'block';
+            } else {
+                element.style.display = 'none';
+            }
+        });
+    });
+
+    const audio = document.getElementById('audio');
+    const play_pause_button = document.getElementById('play_pause_button');
+    const progress = document.getElementById('progress');
+    const progress_pos = document.getElementById('progress_pos');
+    const progress_max = document.getElementById('progress_max');
+    const volume_control = document.getElementById('volume');
+    const volume_label = document.getElementById('volume_label');
+    const url_input = document.getElementById('playlist_url');
+    const track_name = document.getElementById('track_name');
+    const option_playlist = document.getElementById("playlist_option");
+
+    async function set_playlist() {
+      playlist.innerHTML = await invoke("get_playlist", { playlistUrl: option_playlist.value });
+    }
+
+    async function play_track(url, name) {
+      track_name.innerText = name;
+      audio.src = await invoke("get_url", { videoUrl: url });;
+      audio.load();
+      audio.play();
+      audio.loop = true;
+    }
+
+    audio.addEventListener('loadedmetadata', function() {
+      progress.max = audio.duration;
+      progress_max.innerHTML = new Date(1000 * audio.duration).toISOString().substr(11, 8);
+    });
+    
+    play_pause_button.addEventListener('click', function () {
+      if (audio.paused) {
+        audio.play();
+        play_pause_button.textContent = 'Pause';
+      } else {
+        audio.pause();
+        play_pause_button.textContent = 'Play';
+      }
+    });
+            
+    audio.addEventListener('timeupdate', function() {
+      progress.value = audio.currentTime;
+      progress_pos.innerHTML = new Date(1000 * audio.currentTime).toISOString().substr(11, 8);
+    });
+            
+    progress.addEventListener('input', function() {
+      audio.currentTime = progress.value;
+    });
+
+    volume_control.addEventListener('input', function() {
+      audio.volume = volume_control.value;
+      volume_label.innerHTML = volume_control.value * 100;
+    });
+    
+
+  </script>
+  <script defer>
+    const { createStore } = window.__TAURI__.store;
+
+    async function populate_playlists() {
+        const storage = await createStore("playlists.json", {});
+        const keys = await storage.keys();
+
+        option_playlist.innerHTML = "";
+
+        for (const key of keys) {
+            const value = await storage.get(key);
+            const option = document.createElement("option");
+            option.textContent = key;
+            option.value = value;
+            option_playlist.appendChild(option);
+        }
+        await storage.save();
+    }
+
+    populate_playlists();
+
+  </script>
+</body>
+
+</html>

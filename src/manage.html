@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset='UTF-8' />
+  <link rel='stylesheet' href='styles.css' />
+  <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+  <title>Murder Player</title>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Murder Player</h1>
+    <p></p>
+        <input id="playlist_url" type="text" placeholder="(Youtube Playlist Link)">
+        <input id="playlist_name" type="text" placeholder="(Playlist Name)">
+        <button id="submit_item">Add</button>
+        <a href="index.html">
+            <button class='control_button'>Back</button>
+          </a>
+    </p>
+    <ol id="playlists">
+
+    </ol>
+  </div>
+  <script defer>
+    const { createStore } = window.__TAURI__.store;
+    const playlists = document.getElementById("playlists")
+    const playlist_url = document.getElementById('playlist_url');
+    const playlist_name = document.getElementById('playlist_name');
+    const button_add = document.getElementById('submit_item');
+
+    button_add.addEventListener('click', function () {
+        add_playlist();
+      });
+
+    async function add_playlist() {
+        const storage = await createStore("playlists.json", {});
+        const playlist_url_value = playlist_url.value;
+        const playlist_name_value = playlist_name.value;
+        if (playlist_url_value) {
+            if (!await storage.has(playlist_name_value)) {
+                await storage.set(playlist_name_value, playlist_url_value);
+                await storage.save();
+                populate_playlists();
+            }
+        }
+    }
+
+    async function populate_playlists() {
+        const storage = await createStore("playlists.json", {});
+        const keys = await storage.keys();
+
+        playlists.innerHTML = "";
+
+        for (const key of keys) {
+            const value = await storage.get(key);
+            const list_item = document.createElement("li");
+            list_item.textContent = key;
+            const button = document.createElement("button");
+            button.textContent = "Remove";
+            list_item.appendChild(button);
+            
+            button.addEventListener("click", async function() {
+                await storage.delete(key);
+                await storage.save();
+                populate_playlists();
+            });
+
+            playlists.appendChild(list_item);
+        }
+    }
+
+    populate_playlists();
+
+  </script>
+</body>
+
+</html>
