@@ -5,6 +5,8 @@
   <meta charset='UTF-8' />
   <link rel='stylesheet' href='styles.css' />
   <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+  <meta http-equiv="Content-Security-Policy" content="script-src 'unsafe-inline';">
+
   <title>Murder Player</title>
 </head>
 
@@ -32,7 +34,7 @@
             <a href="manage.html">
               <button class='control_button'>Manage</button>
             </a>
-            <select onchange="set_playlist()" id="playlist_option"></select>
+            <select id="playlist_option"></select>
           </p>
       </div>
     </div>
@@ -69,8 +71,20 @@
     const track_name = document.getElementById('track_name');
     const option_playlist = document.getElementById("playlist_option");
 
+    option_playlist.addEventListener("change", function() {
+      set_playlist()
+    });
+
     async function set_playlist() {
       playlist.innerHTML = await invoke("get_playlist", { playlistUrl: option_playlist.value });
+      const buttons = playlist.querySelectorAll('.element');
+      buttons.forEach(button => {
+          button.addEventListener('click', function () {
+              const video_url = button.getAttribute('data-url');
+              const title = button.getAttribute('data-title');
+              play_track(video_url, title);
+          });
+      });
     }
 
     async function play_track(url, name) {

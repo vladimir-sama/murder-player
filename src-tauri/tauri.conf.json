@@ -28,7 +28,7 @@
         "files": {}
       }
     },
-    "targets": "all",
+    "targets": "appimage",
     "icon": [
       "icons/icon.png"
     ]

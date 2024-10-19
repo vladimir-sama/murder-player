@@ -29,8 +29,8 @@ fn get_playlist(playlist_url: &str) -> String {
                 index += 1;
 
                 return_html += &format!(
-                    "<p class='element_parent'>{}. <button onclick='play_track(\"{}\", \"{}\")' class='element' type='button'>{}</button></p>",
-                    index, video_url, title, title
+                    "<p class='element_parent'>{}. <button data-url='{}' data-title='{}' class='element' type='button'>{}</button></p>",
+                    index, video_url, title.replace("'", "&#39;"), title
                 );
             }
         }
